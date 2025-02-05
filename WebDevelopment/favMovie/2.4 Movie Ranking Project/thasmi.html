@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPEAK 2 HIRE - Voice-Assisted Resume Builder</title>
+  <!-- Styles -->
+  <style>
+    /* Minimalistic Design */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    header {
+      background: #6200ea;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    section {
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 800px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      margin: 0;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+    h2 {
+      font-size: 1.8rem;
+      color: #6200ea;
+    }
+    p {
+      line-height: 1.6;
+    }
+    button {
+      background: #6200ea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover {
+      background: #3700b3;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .voice-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .resume-output {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #333;
+      color: white;
+      margin-top: 40px;
+    }
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+      }
+      .voice-controls {
+        flex-direction: column;
+      }
+    }
+  </style>
+  <!-- React and ReactDOM via CDN -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <!-- Google Speech-to-Text API -->
+  <script src="https://cdn.jsdelivr.net/npm/@google-cloud/speech"></script>
+  <!-- Amazon Polly SDK -->
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1355.0.min.js"></script>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <h1>SPEAK 2 HIRE</h1>
+    <p>Voice-Assisted Resume Builder for Blind Individuals</p>
+  </header>
+
+  <!-- Main Content -->
+  <section>
+    <h2>Create Your Resume</h2>
+    <p>Use your voice to build a professional resume. Click the microphone to start speaking.</p>
+    <div id="app"></div> <!-- React App will render here -->
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2023 SPEAK 2 HIRE. All rights reserved.</p>
+  </footer>
+
+  <!-- React App Script -->
+  <script>
+    const { useState } = React;
+
+    function App() {
+      const [resumeText, setResumeText] = useState("");
+      const [isListening, setIsListening] = useState(false);
+
+      // Initialize Google Speech-to-Text
+      const startListening = () => {
+        setIsListening(true);
+        const recognition = new window.webkitSpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setResumeText(transcript);
+          setIsListening(false);
+        };
+        recognition.start();
+      };
+
+      // Initialize Amazon Polly for Text-to-Speech
+      const speakResume = () => {
+        const polly = new AWS.Polly({ region: "us-east-1" });
+        const params = {
+          Text: resumeText,
+          OutputFormat: "mp3",
+          VoiceId: "Joanna",
+        };
+        polly.synthesizeSpeech(params, (err, data) => {
+          if (err) {
+            console.error("Error synthesizing speech:", err);
+          } else {
+            const audio = new Audio(URL.createObjectURL(new Blob([data.AudioStream])));
+            audio.play();
+          }
+        });
+      };
+
+      return (
+        <div>
+          <div className="voice-controls">
+            <button onClick={startListening} disabled={isListening}>
+              {isListening ? "Listening..." : "Start Speaking"}
+            </button>
+            <button onClick={speakResume}>Hear Your Resume</button>
+          </div>
+          <textarea
+            rows="10"
+            placeholder="Your resume will appear here..."
+            value={resumeText}
+            onChange={(e) => setResumeText(e.target.value)}
+          ></textarea>
+          <div className="resume-output">
+            <h3>Your Resume:</h3>
+            <p>{resumeText}</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Render the React App
+    ReactDOM.render(<App />, document.getElementById("app"));
+  </script>
+</body>
+</html>
