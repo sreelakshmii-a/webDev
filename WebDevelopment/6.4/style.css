@@ -1,6 +1,6 @@
 
     body{
-      background-color:violet;
+      background-color:rgb(27, 27, 27);
     }
     .poster{
     width: 50%;
@@ -19,7 +19,7 @@
     
 
     .img{
-      border: 5px solid purple;
+      border: 5px solid white;
       width: 50%;
     }
     
